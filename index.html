@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="https://js.arcgis.com/4.17/esri/css/main.css">
+    <script src="https://js.arcgis.com/4.17/"></script>
+    <title>UWM Historical Nautical Charts</title>
+    <style>
+      html, body, #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+    <script>
+  require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer"], function(
+  Map,
+  MapView,
+  FeatureLayer
+) {
+
+  // Create a style for the chartsLayer
+  var renderer = {
+  type: "simple",  // autocasts as new SimpleRenderer()
+  symbol: {
+    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+    color: [ 255, 128, 0, 0.5 ],
+    outline: {  // autocasts as new SimpleLineSymbol()
+      width: 1,
+      color: "white"
+    }
+  }
+  };
+
+  // Create a FeatureLayer
+  var chartsLayer = new FeatureLayer({
+    url: "https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0",
+    renderer: renderer
+  });
+
+  // Create the Map and add the featureLayer defined above
+  map = new Map({
+    basemap: "oceans",
+    layers: [chartsLayer]
+  });
+
+  // Create the MapView
+  var view = new MapView({
+    container: "viewDiv",
+    map: map,
+    center: [-73.95, 40.702],
+    zoom: 10
+  });
+
+  // Create a template for the popup
+  var template = {
+  // autocasts as new PopupTemplate()
+  title: "{title}",
+  content: [
+    {
+      type: "fields",
+      fieldInfos: [
+        {
+          fieldName: "label",
+          label: "Scale"
+        },
+        {
+          fieldName: "west",
+          label: "West"
+        },
+        {
+          fieldName: "east",
+          label: "East"
+        },
+        {
+          fieldName: "north",
+          label: "North"
+        },
+        {
+          fieldName: "south",
+          label: "South"
+        },
+        {
+          fieldName: "scale",
+          label: "Scale"
+        }
+      ]
+    }
+  ]
+};
+
+// Set the popup template on the layer
+chartsLayer.popupTemplate = template;
+
+function setFeatureLayerFilter(expression) {
+  chartsLayer.definitionExpression = expression;
+}
+
+setFeatureLayerFilter("scale < 698000" );     
+view.watch("zoom", function(newValue) {
+  console.log("scale property changed: ", newValue);
+});
+});
+
+
+  </script>
+    </script>
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>
