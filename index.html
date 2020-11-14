@@ -15,10 +15,11 @@
       }
     </style>
     <script>
-  require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer"], function(
+  require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/geometry/Extent"], function(
   Map,
   MapView,
-  FeatureLayer
+  FeatureLayer,
+  Extent
 ) {
 
   // Create a style for the chartsLayer
@@ -37,6 +38,7 @@
   // Create a FeatureLayer
   var chartsLayer = new FeatureLayer({
     url: "https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0",
+    outFields: ["*"], // Return all fields so it can be queried client-side
     renderer: renderer
   });
 
@@ -50,9 +52,22 @@
   var view = new MapView({
     container: "viewDiv",
     map: map,
-    center: [-73.95, 40.702],
-    zoom: 10
+    center: [0,0],    
+    zoom: 2
   });
+
+  // setup the contraints of the map
+  view.constraints = {
+  geometry: {            // Constrain lateral movement to the entire globe with no repeat
+    type: "extent",
+    xmin: -90,
+    ymin: -180,
+    xmax: 90,
+    ymax: 180
+  },
+  minZoom: 2,          // User can overzoom tiles
+  rotationEnabled: false // Disables map rotation
+};
 
   // Create a template for the popup
   var template = {
@@ -97,12 +112,57 @@ chartsLayer.popupTemplate = template;
 function setFeatureLayerFilter(expression) {
   chartsLayer.definitionExpression = expression;
 }
+// The filter for the page load map view
+// Only show small scale series
+setFeatureLayerFilter("Shape_Area >= 9463642202000" );
 
-setFeatureLayerFilter("scale < 698000" );     
+//setFeatureLayerFilter("scale < 698000" );
+// Exclude map scales according to the zoom level
+// Use 'Shape_Area' because scale information might be missing for some charts     
 view.watch("zoom", function(newValue) {
+  if (newValue <= 2) {    
+    setFeatureLayerFilter("Shape_Area >= 9463642202000" ); 
+  } else if (newValue >= 4) {
+    setFeatureLayerFilter("Shape_Area <= 946364220200" );
+  }
+
   console.log("scale property changed: ", newValue);
 });
+
+// Query the layer based on the chart series
+var sqlExpressions = [
+  "datePub > 1911",
+  "datePub = 1912",
+  "USE_BIKE = 'Yes'",
+  "USE_BIKE = 'No'",
+  "ELEV_GAIN < 1000",
+  "ELEV_GAIN > 1000",
+  "TRL_NAME = 'California Coastal Trail'"
+];
+
+var selectFilter = document.createElement("select");
+selectFilter.setAttribute("class", "esri-widget esri-select");
+selectFilter.setAttribute(
+  "style",
+  "width: 275px; font-family: Avenir Next W00; font-size: 1em;"
+);
+
+sqlExpressions.forEach(function (sql) {
+  var option = document.createElement("option");
+  option.value = sql;
+  option.innerHTML = sql;
+  selectFilter.appendChild(option);
 });
+
+view.ui.add(selectFilter, "top-right");
+
+ selectFilter.addEventListener('change', function (event) {
+        setFeatureLayerFilter(event.target.value);
+      });
+
+});
+
+
 
 
   </script>
