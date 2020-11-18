@@ -3,18 +3,42 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
     <link rel="stylesheet" href="https://js.arcgis.com/4.17/esri/css/main.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/json2csv@4.2.1"></script>
     <script src="https://js.arcgis.com/4.17/"></script>
-    <title>UWM Historical Nautical Charts</title>
+    
+    <title>AGSL Nautical Chart Explorer</title>
     <style>
-      html, body, #viewDiv {
-        padding: 0;
-        margin: 0;
-        height: 100%;
+      #viewDiv {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        margin-top: 56px;
         width: 100%;
+      }
+      .navbar {
+        height: 56.5px;        
+        
+      }
+      .bg-light {
+        background: #555555 !important;
+        border-bottom: solid 2px black;
       }
     </style>
     <script>
+  // Function to download the GeoJSON object from the REST API    
+  function downloadGeoJson(text, name) {
+    var a = document.createElement('a');
+    var type = name.split(".").pop();
+    a.href = URL.createObjectURL( new Blob([text], { type:`text/${type === "txt" ? "plain" : type}` }) );
+    a.download = name;
+    a.click();
+  }    
+
+  // AGOL API JS
   require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/geometry/Extent"], function(
   Map,
   MapView,
@@ -53,7 +77,7 @@
     container: "viewDiv",
     map: map,
     center: [0,0],    
-    zoom: 2
+    zoom: 3
   });
 
   // setup the contraints of the map
@@ -65,7 +89,7 @@
     xmax: 90,
     ymax: 180
   },
-  minZoom: 2,          // User can overzoom tiles
+  minZoom: 2,          
   rotationEnabled: false // Disables map rotation
 };
 
@@ -79,7 +103,7 @@
       fieldInfos: [
         {
           fieldName: "label",
-          label: "Scale"
+          label: "label"
         },
         {
           fieldName: "west",
@@ -131,13 +155,8 @@ view.watch("zoom", function(newValue) {
 
 // Query the layer based on the chart series
 var sqlExpressions = [
-  "datePub > 1911",
-  "datePub = 1912",
-  "USE_BIKE = 'Yes'",
-  "USE_BIKE = 'No'",
-  "ELEV_GAIN < 1000",
-  "ELEV_GAIN > 1000",
-  "TRL_NAME = 'California Coastal Trail'"
+  "datePub = 1911",
+  "datePub = 1912"  
 ];
 
 var selectFilter = document.createElement("select");
@@ -158,17 +177,97 @@ view.ui.add(selectFilter, "top-right");
 
  selectFilter.addEventListener('change', function (event) {
         setFeatureLayerFilter(event.target.value);
-      });
+  });
 
-});
+// Add element for the download button using Esri widgets
+var downloadBtn = document.createElement('div');
+downloadBtn.className = "esri-icon-download esri-widget--button esri-widget esri-interactive";
+downloadBtn.addEventListener('click', function(event){
+  // when the download button is clicked show the modal
+  $('#download').modal('show') 
+})
 
+view.ui.add(downloadBtn, "top-left");
 
+var download = document.getElementById('download');
+
+download.addEventListener('click', function(event){
+
+  var seriesVal = document.getElementById('series').value;
+  console.log(seriesVal);
+// Get the charts data from the ArcGIS REST API
+// Use an HTTP get request
+
+  $.ajax({
+          dataType: 'json',
+          url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27French+Charts%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=pjson',
+          type: "GET",    
+          success: function(data) {
+            console.log(data);
+            // The output fields for the CSV, if new ones are added must add here
+            const fields = ['attributes.label', 'attributes.datePub', 'attributes.recId'];            
+            var parser = new json2csv.Parser({fields});
+            var features = data.features;
+            var csv = parser.parse(data.features);
+            console.log(csv);
+          }
+  });
+})
+
+})
+
+ /*$.ajax({
+          dataType: 'json',
+          url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27' + seriesVal + '%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=pjson',
+          type: "GET",    
+          success: function(data) {
+            console.log(data);
+           // downloadGeoJson(JSON.stringify(data, undefined, 4), 'chart_data.geojson');
+           exportJSONToCSV(data);
+          }
+  });   
+})*/
 
 
   </script>
     </script>
   </head>
   <body>
+    <!-- Image and text -->
+<nav class="navbar navbar-light bg-light">
+  <a class="navbar-brand" href="#">
+    <img src="compass.png" width="40" height="40" class="d-inline-block align-top" alt="" loading="lazy">
+    AGSL Nautical Chart Explorer
+  </a>
+</nav>
     <div id="viewDiv"></div>
+    <div class="modal" id="download" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Download Map Data</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <label for="cars">Chart series:</label>
+        <select name="series" id="series">         
+            <option value="French Charts">French Charts</option>
+            <option value="british">British Charts</option>              
+        </select>
+         <label for="cars">Format:</label>
+        <select name="format" id="format">         
+            <option value="csv">CSV</option>
+            <option value="geojson">GeoJSON</option>              
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="download" class="btn btn-primary">Download</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
   </body>
 </html>
