@@ -39,13 +39,13 @@
   }    
 
   // AGOL API JS
-  require(["esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/geometry/Extent"], function(
-  Map,
-  MapView,
-  FeatureLayer,
-  Extent
-) {
-
+  require([
+    "esri/Map", 
+    "esri/views/MapView",
+    "esri/layers/FeatureLayer", 
+    "esri/geometry/Extent",
+    "esri/smartMapping/statistics/uniqueValues"
+    ], function(Map, MapView, FeatureLayer, Extent, uniqueValues){
   // Create a style for the chartsLayer
   var renderer = {
   type: "simple",  // autocasts as new SimpleRenderer()
@@ -91,14 +91,44 @@
   },
   minZoom: 2,          
   rotationEnabled: false // Disables map rotation
-};
+  };
 
+uniqueValues({
+  layer: chartsLayer,
+  field: "setTitle"
+}).then(function(response){
+  // prints each unique value and the count of features containing that value
+  var infos = response.uniqueValueInfos;
+  infos.forEach(function(info){
+    console.log("CANDIDATE: ", info.value, " # OF CAMPAIGN STOPS: ", info.count);
+  });
+});
+
+var query = chartsLayer.createQuery({returnDistinctValues: true});
+query.where = '1=1';
+query.outFields = [ "setTitle" ];
+
+chartsLayer.queryFeatures(query)
+  .then(function(response){
+    console.log(response);
+     // returns a feature set with features containing the following attributes
+     // STATE_NAME, COUNTY_NAME, POPULATION, POP_DENSITY
+   });
   // Create a template for the popup
   var template = {
   // autocasts as new PopupTemplate()
-  title: "{title}",
-  content: [
-    {
+  title: "<font color='#008000'>{title}",
+  content: [     
+        {
+      type: "media",
+      mediaInfos: [
+        {
+          title: "Camera is online:",
+          type: "image",
+          value: {sourceURL: '{iiifURL}'}
+        }
+      ]          
+        },{
       type: "fields",
       fieldInfos: [
         {
@@ -126,7 +156,7 @@
           label: "Scale"
         }
       ]
-    }
+    }, 
   ]
 };
 
@@ -184,50 +214,161 @@ var downloadBtn = document.createElement('div');
 downloadBtn.className = "esri-icon-download esri-widget--button esri-widget esri-interactive";
 downloadBtn.addEventListener('click', function(event){
   // when the download button is clicked show the modal
-  $('#download').modal('show') 
+  $('#dataModal').modal('show') 
 })
 
 view.ui.add(downloadBtn, "top-left");
 
 var download = document.getElementById('download');
 
-download.addEventListener('click', function(event){
 
+getDataBtn.addEventListener('click', function(event){ 
   var seriesVal = document.getElementById('series').value;
-  console.log(seriesVal);
+var dataFormat = document.getElementById('format').value;
+  console.log(seriesVal, dataFormat);
+  if (dataFormat == 'csv') {  
 // Get the charts data from the ArcGIS REST API
 // Use an HTTP get request
-
-  $.ajax({
+    $.ajax({
+            dataType: 'json',
+            url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27' + seriesVal + '%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=pjson',
+            type: "GET",    
+            success: function(data) {            
+              // The output fields for the CSV, if new ones are added must add here           
+              var fields = [            
+                {
+                  label: 'label', 
+                  value: 'attributes.label',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'title', 
+                  value: 'attributes.title',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'datePub', 
+                  value: 'attributes.datePub',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'scale', 
+                  value: 'attributes.scale',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'primeMer', 
+                  value: 'attributes.primeMer',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'west', 
+                  value: 'attributes.west',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'east', 
+                  value: 'attributes.east',
+                  default: 'NULL' 
+                },
+                 {
+                  label: 'north', 
+                  value: 'attributes.north',
+                  default: 'NULL' 
+                },
+                 {
+                  label: 'south', 
+                  value: 'attributes.south',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'color', 
+                  value: 'attributes.color',
+                  default: 'NULL' 
+                },
+                 {
+                  label: 'available', 
+                  value: 'attributes.available',
+                  default: 'NULL' 
+                },
+                 {
+                  label: 'physHold', 
+                  value: 'attributes.physHold',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'edition', 
+                  value: 'attributes.edition',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'publisher', 
+                  value: 'attributes.projection',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'projection', 
+                  value: 'attributes.projection',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'location', 
+                  value: 'attributes.location',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'digHold', 
+                  value: 'attributes.digHold',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'bathInterv', 
+                  value: 'attributes.bathInterv',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'bathLines', 
+                  value: 'attributes.bathLines',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'note', 
+                  value: 'attributes.note',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'recId', 
+                  value: 'attributes.recId',
+                  default: 'NULL' 
+                },
+                {
+                  label: 'iiifUrl', 
+                  value: 'attributes.iiifURL',
+                  default: 'NULL' 
+                },
+              ]             
+              var parser = new json2csv.Parser({fields});            
+              var csv = parser.parse(data.features);
+              var element = document.createElement('a');
+              element.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+              element.target = '_blank';
+              element.download = 'chart_data.csv';
+              element.click();            
+            }
+    });
+  } else if (dataFormat == 'geojson') {
+    $.ajax({
           dataType: 'json',
-          url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27French+Charts%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=pjson',
+          url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27' + seriesVal + '%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=geojson',
           type: "GET",    
-          success: function(data) {
-            console.log(data);
-            // The output fields for the CSV, if new ones are added must add here
-            const fields = ['attributes.label', 'attributes.datePub', 'attributes.recId'];            
-            var parser = new json2csv.Parser({fields});
-            var features = data.features;
-            var csv = parser.parse(data.features);
-            console.log(csv);
+          success: function(data) {            
+            downloadGeoJson(JSON.stringify(data, undefined, 4), 'chart_data.geojson');           
           }
-  });
+    });   
+  }
 })
 
 })
-
- /*$.ajax({
-          dataType: 'json',
-          url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27' + seriesVal + '%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=pjson',
-          type: "GET",    
-          success: function(data) {
-            console.log(data);
-           // downloadGeoJson(JSON.stringify(data, undefined, 4), 'chart_data.geojson');
-           exportJSONToCSV(data);
-          }
-  });   
-})*/
-
 
   </script>
     </script>
@@ -241,11 +382,11 @@ download.addEventListener('click', function(event){
   </a>
 </nav>
     <div id="viewDiv"></div>
-    <div class="modal" id="download" tabindex="-1" role="dialog">
+    <div class="modal" id="dataModal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Download Map Data</h5>
+        <h5 class="modal-title">Download Chart Data</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -254,7 +395,7 @@ download.addEventListener('click', function(event){
         <label for="cars">Chart series:</label>
         <select name="series" id="series">         
             <option value="French Charts">French Charts</option>
-            <option value="british">British Charts</option>              
+            <option value="Null Island Charts">Null Island Charts</option>              
         </select>
          <label for="cars">Format:</label>
         <select name="format" id="format">         
@@ -263,7 +404,7 @@ download.addEventListener('click', function(event){
         </select>
       </div>
       <div class="modal-footer">
-        <button type="button" id="download" class="btn btn-primary">Download</button>
+        <button type="button" id="getDataBtn" class="btn btn-primary">Download</button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>
