@@ -93,27 +93,55 @@
   rotationEnabled: false // Disables map rotation
   };
 
-uniqueValues({
-  layer: chartsLayer,
-  field: "setTitle"
-}).then(function(response){
-  // prints each unique value and the count of features containing that value
-  var infos = response.uniqueValueInfos;
-  infos.forEach(function(info){
-    console.log("CANDIDATE: ", info.value, " # OF CAMPAIGN STOPS: ", info.count);
-  });
-});
+  // Create the dropdown menu for the select filter
+  var selectFilter = document.createElement("select");
+  selectFilter.setAttribute("class", "esri-widget esri-select");
+  selectFilter.setAttribute(
+    "style",
+    "width: 275px; font-family: Avenir Next W00; font-size: 1em;"
+  );
+  selectFilter.id = 'setFilter';
 
-var query = chartsLayer.createQuery({returnDistinctValues: true});
-query.where = '1=1';
-query.outFields = [ "setTitle" ];
+  var disabledOpt = document.createElement("option");
+  disabledOpt.textContent = 'Select chart a series';
+  disabledOpt.disabled = true;
+  disabledOpt.selected = true;
 
-chartsLayer.queryFeatures(query)
-  .then(function(response){
-    console.log(response);
-     // returns a feature set with features containing the following attributes
-     // STATE_NAME, COUNTY_NAME, POPULATION, POP_DENSITY
-   });
+  selectFilter.appendChild(disabledOpt);
+
+  view.ui.add(selectFilter, "top-right");
+
+  // Run a query on the chartsLayer to get unique field values from 'setTitle'
+  var query = chartsLayer.createQuery();
+  query.where = "1=1";
+  query.outFields = [ "setTitle" ];
+  query.returnDistinctValues = true;
+  query.returnGeometry = false;
+
+  // Use the response of the query to auto-populate the dropdown menus
+  // for the chartsLayer filter and series select dropdown
+  chartsLayer.queryFeatures(query)
+    .then(function(response){
+      var seriesSelect = document.getElementById('series');
+      var filterSelect = document.getElementById('setFilter');
+      // returns the unique values from the setTitle field
+      var features = response.toJSON().features;    
+      Object.values(features).forEach(function(value) {
+        // for the series options on the download modal
+        var seriesVal = value.attributes.setTitle;
+        var seriesOpt = document.createElement("option");
+        seriesOpt.textContent = seriesVal;
+        seriesOpt.value = seriesVal;
+        seriesSelect.appendChild(seriesOpt);
+        // for the series options on the main map filter
+        var filterOpt = document.createElement("option");
+        filterOpt.textContent = seriesVal;
+        filterOpt.placeholder = 'Select a series';
+        filterOpt.value = "setTitle = " + "'" + seriesVal + "'";
+        filterSelect.appendChild(filterOpt);
+      });         
+    });
+
   // Create a template for the popup
   var template = {
   // autocasts as new PopupTemplate()
@@ -123,7 +151,7 @@ chartsLayer.queryFeatures(query)
       type: "media",
       mediaInfos: [
         {
-          title: "Camera is online:",
+          title: "",
           type: "image",
           value: {sourceURL: '{iiifURL}'}
         }
@@ -183,31 +211,12 @@ view.watch("zoom", function(newValue) {
   console.log("scale property changed: ", newValue);
 });
 
-// Query the layer based on the chart series
-var sqlExpressions = [
-  "datePub = 1911",
-  "datePub = 1912"  
-];
 
-var selectFilter = document.createElement("select");
-selectFilter.setAttribute("class", "esri-widget esri-select");
-selectFilter.setAttribute(
-  "style",
-  "width: 275px; font-family: Avenir Next W00; font-size: 1em;"
-);
 
-sqlExpressions.forEach(function (sql) {
-  var option = document.createElement("option");
-  option.value = sql;
-  option.innerHTML = sql;
-  selectFilter.appendChild(option);
+// filter the chartsLayer using the attributes in the dropdown. 
+selectFilter.addEventListener('change', function (event) {
+      setFeatureLayerFilter(event.target.value);
 });
-
-view.ui.add(selectFilter, "top-right");
-
- selectFilter.addEventListener('change', function (event) {
-        setFeatureLayerFilter(event.target.value);
-  });
 
 // Add element for the download button using Esri widgets
 var downloadBtn = document.createElement('div');
@@ -393,9 +402,7 @@ var dataFormat = document.getElementById('format').value;
       </div>
       <div class="modal-body">
         <label for="cars">Chart series:</label>
-        <select name="series" id="series">         
-            <option value="French Charts">French Charts</option>
-            <option value="Null Island Charts">Null Island Charts</option>              
+        <select name="series" id="series">                          
         </select>
          <label for="cars">Format:</label>
         <select name="format" id="format">         
