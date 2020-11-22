@@ -1,8 +1,8 @@
-/*var viewer = OpenSeadragon({
-    id: "openseadragon1",        
-    tileSources: "https://cdm17272.contentdm.oclc.org/digital/iiif/agdm/8832/"
-});    */
-       
+  var viewer = OpenSeadragon({
+      id: "openseadragon1",
+      prefixUrl: "https://cdn.jsdelivr.net/npm/openseadragon@2.4/build/openseadragon/images/"      
+  });        
+  
   // Function to download the GeoJSON object from the REST API    
   function downloadGeoJson(text, name) {
     var a = document.createElement('a');
@@ -116,10 +116,17 @@
       });         
     });
 
+    // creates a new image viewer
+  function viewImage() {    
+    var imageId = view.popup.selectedFeature.attributes.sheetId;         
+    viewer.open( "https://cdm17272.contentdm.oclc.org/digital/iiif/agdm/" + imageId + "/");
+    $('#imageModal').modal('show');
+  }   
+
   // Create a template for the popup
   var template = {
   // autocasts as new PopupTemplate()
-  title: "<font color='#008000'>{title}",
+  title: "<font color='#008000'>{title}",  
   content: [     
         {
       type: "media",
@@ -164,6 +171,26 @@
 
 // Set the popup template on the layer
 chartsLayer.popupTemplate = template;
+
+// Actions for the popup
+var imageViewerAction = {
+  // This text is displayed as a tooltip
+  title: "Full Image",
+  // The ID by which to reference the action in the event handler
+  id: "view-image",
+  // Sets the icon font used to style the action button
+  className: "esri-icon-maps"
+};
+// Adds the custom action to the popup.
+view.popup.actions.push(imageViewerAction);
+
+// This event fires for each click on any action
+view.popup.on("trigger-action", function(event){
+  // If the zoom-out action is clicked, fire the zoomOut() function
+  if(event.action.id === "view-image"){
+    viewImage();
+  }
+});
 
 function setFeatureLayerFilter(expression) {
   chartsLayer.definitionExpression = expression;

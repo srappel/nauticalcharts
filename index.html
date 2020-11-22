@@ -20,8 +20,7 @@
     <img src="compass.png" width="40" height="40" class="d-inline-block align-top" alt="" loading="lazy">
     AGSL Nautical Chart Explorer
   </a>
-</nav>
-    <div id="openseadragon1" style="width: 800px; height: 600px;"></div>
+</nav>    
     <div id="viewDiv"></div>
     <div class="modal" id="dataModal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
@@ -44,6 +43,24 @@
       </div>
       <div class="modal-footer">
         <button type="button" id="getDataBtn" class="btn btn-primary">Download</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal" id="imageModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Download Chart Data</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="openseadragon1" style="width: 400px; height: 300px;"></div>
+      </div>
+      <div class="modal-footer">        
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>
