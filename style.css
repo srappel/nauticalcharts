@@ -13,3 +13,12 @@
   background: #555555 !important;
   border-bottom: solid 2px black;
 }
+
+
+#imageModal .modal-content {
+    width: 600px;
+    height: 700px;
+    margin:0 auto;
+        /*add what you want here*/
+}
+

@@ -17,9 +17,10 @@
     "esri/Map", 
     "esri/views/MapView",
     "esri/layers/FeatureLayer", 
+    "esri/layers/MapImageLayer",
     "esri/geometry/Extent",
     "esri/smartMapping/statistics/uniqueValues"
-    ], function(Map, MapView, FeatureLayer, Extent, uniqueValues){
+    ], function(Map, MapView, FeatureLayer, MapImageLayer, Extent, uniqueValues){
   // Create a style for the chartsLayer
   var renderer = {
   type: "simple",  // autocasts as new SimpleRenderer()
@@ -31,19 +32,25 @@
       color: "white"
     }
   }
-  };
+  }; 
 
-  // Create a FeatureLayer
+  // Layer for the nautical charts 
   var chartsLayer = new FeatureLayer({
     url: "https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0",
     outFields: ["*"], // Return all fields so it can be queried client-side
     renderer: renderer
   });
+  
+  // Layer for the graticule
+  var gridLayer = new MapImageLayer({
+    url: "https://gis.ngdc.noaa.gov/arcgis/rest/services/web_mercator/graticule/MapServer",
+    visible: false
+  });
 
   // Create the Map and add the featureLayer defined above
   map = new Map({
     basemap: "oceans",
-    layers: [chartsLayer]
+    layers: [chartsLayer, gridLayer]
   });
 
   // Create the MapView
@@ -116,7 +123,7 @@
       });         
     });
 
-    // creates a new image viewer
+  // creates a new image viewer
   function viewImage() {    
     var imageId = view.popup.selectedFeature.attributes.sheetId;         
     viewer.open( "https://cdm17272.contentdm.oclc.org/digital/iiif/agdm/" + imageId + "/");
@@ -197,13 +204,13 @@ function setFeatureLayerFilter(expression) {
 }
 // The filter for the page load map view
 // Only show small scale series
-setFeatureLayerFilter("Shape_Area >= 9463642202000" );
+//setFeatureLayerFilter("Shape_Area >= 9463642202000" );
 
 //setFeatureLayerFilter("scale < 698000" );
 // Exclude map scales according to the zoom level
 // Use 'Shape_Area' because scale information might be missing for some charts     
 view.watch("zoom", function(newValue) {
-  if (newValue <= 2) {    
+  if (newValue <= 1) {    
     setFeatureLayerFilter("Shape_Area >= 9463642202000" ); 
   } else if (newValue >= 4) {
     setFeatureLayerFilter("Shape_Area <= 946364220200" );
@@ -227,12 +234,26 @@ downloadBtn.addEventListener('click', function(event){
 
 view.ui.add(downloadBtn, "top-left");
 
+// Add element for the graticule button using Esri widgets
+var gridBtn = document.createElement('div');
+gridBtn.className = "esri-icon-locate esri-widget--button esri-widget esri-interactive";
+gridBtn.addEventListener('click', function(event){
+  // add and remove the graticule from the map
+  if (gridLayer.visible == false) {
+    gridLayer.visible = true;
+  } else {
+    gridLayer.visible = false;
+  }
+})
+
+view.ui.add(gridBtn, "top-left");
+
 var download = document.getElementById('download');
 
 
 getDataBtn.addEventListener('click', function(event){ 
   var seriesVal = document.getElementById('series').value;
-var dataFormat = document.getElementById('format').value;
+  var dataFormat = document.getElementById('format').value;
   console.log(seriesVal, dataFormat);
   if (dataFormat == 'csv') {  
 // Get the charts data from the ArcGIS REST API
