@@ -40,7 +40,7 @@
     outFields: ["*"], // Return all fields so it can be queried client-side
     renderer: renderer
   });
-  
+
   // Layer for the graticule
   var gridLayer = new MapImageLayer({
     url: "https://gis.ngdc.noaa.gov/arcgis/rest/services/web_mercator/graticule/MapServer",
@@ -83,12 +83,20 @@
   );
   selectFilter.id = 'setFilter';
 
+  // Select menu default disabled option
   var disabledOpt = document.createElement("option");
   disabledOpt.textContent = 'Select chart a series';
   disabledOpt.disabled = true;
   disabledOpt.selected = true;
 
   selectFilter.appendChild(disabledOpt);
+  // Select menu option for all charts
+  var allChartsOpt = document.createElement("option");
+  allChartsOpt.textContent = 'All Nautical Charts';  
+  allChartsOpt.value = "1=1";
+  allChartsOpt.selected = false;
+
+  selectFilter.appendChild(allChartsOpt);
 
   view.ui.add(selectFilter, "top-right");
 
