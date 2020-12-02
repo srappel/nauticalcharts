@@ -19,24 +19,25 @@
     "esri/layers/FeatureLayer", 
     "esri/layers/MapImageLayer",
     "esri/geometry/Extent",
-    "esri/smartMapping/statistics/uniqueValues"
-    ], function(Map, MapView, FeatureLayer, MapImageLayer, Extent, uniqueValues){
+    "esri/smartMapping/statistics/uniqueValues",
+    "esri/widgets/Search",
+    ], function(Map, MapView, FeatureLayer, MapImageLayer, Extent, uniqueValues, Search){
   // Create a style for the chartsLayer
   var renderer = {
-  type: "simple",  // autocasts as new SimpleRenderer()
-  symbol: {
-    type: "simple-fill",  // autocasts as new SimpleFillSymbol()
-    color: [ 255, 128, 0, 0.5 ],
-    outline: {  // autocasts as new SimpleLineSymbol()
-      width: 1,
-      color: "white"
+    type: "simple",  // autocasts as new SimpleRenderer()
+    symbol: {
+      type: "simple-fill",  // autocasts as new SimpleFillSymbol()
+      color: [ 255, 128, 0, 0.5 ],
+      outline: {  // autocasts as new SimpleLineSymbol()
+        width: 1,
+        color: "white"
+      }
     }
-  }
   }; 
 
   // Layer for the nautical charts 
   var chartsLayer = new FeatureLayer({
-    url: "https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0",
+    url: "https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/1",
     outFields: ["*"], // Return all fields so it can be queried client-side
     renderer: renderer
   });
@@ -59,6 +60,18 @@
     map: map,
     center: [0,0],    
     zoom: 3
+  });
+
+  // Add the search bar
+  var searchWidget = new Search({
+    view: view,
+    locationEnabled: false,
+  });
+  // Adds the search widget below other elements in
+  // the top left corner of the view
+  view.ui.add(searchWidget, {
+    position: "top-right",
+    index: 2,
   });
 
   // setup the contraints of the map
@@ -90,14 +103,7 @@
   disabledOpt.selected = true;
 
   selectFilter.appendChild(disabledOpt);
-  // Select menu option for all charts
-  var allChartsOpt = document.createElement("option");
-  allChartsOpt.textContent = 'All Nautical Charts';  
-  allChartsOpt.value = "1=1";
-  allChartsOpt.selected = false;
-
-  selectFilter.appendChild(allChartsOpt);
-
+  
   view.ui.add(selectFilter, "top-right");
 
   // Run a query on the chartsLayer to get unique field values from 'setTitle'
