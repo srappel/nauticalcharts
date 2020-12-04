@@ -53,14 +53,15 @@
     basemap: "oceans",
     layers: [chartsLayer, gridLayer]
   });
-
+ 
   // Create the MapView
   var view = new MapView({
     container: "viewDiv",
     map: map,
-    center: [0,0],    
+    center: [0,0],       
     zoom: 3
   });
+  
 
   // Add the search bar
   var searchWidget = new Search({
@@ -74,18 +75,18 @@
     index: 2,
   });
 
-  // setup the contraints of the map
+  /*// setup the contraints of the map
   view.constraints = {
   geometry: {            // Constrain lateral movement to the entire globe with no repeat
     type: "extent",
-    xmin: -90,
-    ymin: -180,
-    xmax: 90,
-    ymax: 180
+    xmin: -20037507.842788246,
+    ymin: -30240971.958386146,
+    xmax: 20037507.842788246,
+    ymax: 30240971.95838615
   },
   minZoom: 2,          
   rotationEnabled: false // Disables map rotation
-  };
+  };*/
 
   // Create the dropdown menu for the select filter
   var selectFilter = document.createElement("select");
@@ -137,7 +138,7 @@
       });         
     });
 
-  // creates a new image viewer
+  // creates a new image viewer for the popup modal
   function viewImage() {    
     var imageId = view.popup.selectedFeature.attributes.sheetId;         
     viewer.open( "https://cdm17272.contentdm.oclc.org/digital/iiif/agdm/" + imageId + "/");
@@ -214,11 +215,11 @@ view.popup.on("trigger-action", function(event){
 });
 
 function setFeatureLayerFilter(expression) {
-  chartsLayer.definitionExpression = expression;
+  chartsLayer.definitionExpression = expression;  
 }
 // The filter for the page load map view
 // Only show small scale series
-//setFeatureLayerFilter("Shape_Area >= 9463642202000" );
+//setFeatureLayerFilter("Scale >= 9463642202000" );
 
 //setFeatureLayerFilter("scale < 698000" );
 // Exclude map scales according to the zoom level
@@ -234,8 +235,16 @@ view.watch("zoom", function(newValue) {
 });
 
 // filter the chartsLayer using the attributes in the dropdown. 
-selectFilter.addEventListener('change', function (event) {
-      setFeatureLayerFilter(event.target.value);
+selectFilter.addEventListener('change', function (event) {  
+  setFeatureLayerFilter(event.target.value);
+  // zoom to the full extent of the filter
+  chartsLayer
+  .when(function() {
+    return chartsLayer.queryExtent();
+  })
+  .then(function(response) {
+    view.goTo(response.extent);
+  });
 });
 
 // Add element for the download button using Esri widgets
