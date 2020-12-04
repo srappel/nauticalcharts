@@ -37,7 +37,7 @@
 
   // Layer for the nautical charts 
   var chartsLayer = new FeatureLayer({
-    url: "https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/1",
+    url: "https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0",
     outFields: ["*"], // Return all fields so it can be queried client-side
     renderer: renderer
   });
@@ -62,9 +62,27 @@
     zoom: 3
   });
   
+  // Sources for the search widget to search our own dataset
+  // In this case we use the chartsLayer
+  var sources = [
+  {
+    layer: chartsLayer,
+    searchFields: ["label", "title"],
+    displayField: "title",
+    exactMatch: false,
+    outFields: ["*"],
+    name: "AGSL Nautical Charts",
+    placeholder: "Enter chart label or title",
+    maxResults: 6,
+    maxSuggestions: 6,
+    suggestionsEnabled: true,
+    minSuggestCharacters: 0
+  }
+  ];
 
-  // Add the search bar
+  // Add the search bar widget
   var searchWidget = new Search({
+    sources: sources,
     view: view,
     locationEnabled: false,
   });
@@ -74,20 +92,7 @@
     position: "top-right",
     index: 2,
   });
-
-  /*// setup the contraints of the map
-  view.constraints = {
-  geometry: {            // Constrain lateral movement to the entire globe with no repeat
-    type: "extent",
-    xmin: -20037507.842788246,
-    ymin: -30240971.958386146,
-    xmax: 20037507.842788246,
-    ymax: 30240971.95838615
-  },
-  minZoom: 2,          
-  rotationEnabled: false // Disables map rotation
-  };*/
-
+  
   // Create the dropdown menu for the select filter
   var selectFilter = document.createElement("select");
   selectFilter.setAttribute("class", "esri-widget esri-select");
@@ -224,7 +229,7 @@ function setFeatureLayerFilter(expression) {
 //setFeatureLayerFilter("scale < 698000" );
 // Exclude map scales according to the zoom level
 // Use 'Shape_Area' because scale information might be missing for some charts     
-view.watch("zoom", function(newValue) {
+/*view.watch("zoom", function(newValue) {
   if (newValue <= 1) {    
     setFeatureLayerFilter("Shape_Area >= 9463642202000" ); 
   } else if (newValue >= 4) {
@@ -232,12 +237,12 @@ view.watch("zoom", function(newValue) {
   }
 
   console.log("scale property changed: ", newValue);
-});
+});*/
 
 // filter the chartsLayer using the attributes in the dropdown. 
 selectFilter.addEventListener('change', function (event) {  
   setFeatureLayerFilter(event.target.value);
-  // zoom to the full extent of the filter
+  // zoom to the full extent of the filter result
   chartsLayer
   .when(function() {
     return chartsLayer.queryExtent();
@@ -272,7 +277,6 @@ gridBtn.addEventListener('click', function(event){
 view.ui.add(gridBtn, "top-left");
 
 var download = document.getElementById('download');
-
 
 getDataBtn.addEventListener('click', function(event){ 
   var seriesVal = document.getElementById('series').value;
