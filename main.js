@@ -62,6 +62,7 @@
     zoom: 3
   });
   
+
   // Sources for the search widget to search our own dataset
   // In this case we use the chartsLayer
   var sources = [
@@ -76,7 +77,8 @@
     maxResults: 6,
     maxSuggestions: 6,
     suggestionsEnabled: true,
-    minSuggestCharacters: 0
+    minSuggestCharacters: 0,
+    filter: { where: $('#setFilter').val()},
   }
   ];
 
@@ -106,7 +108,7 @@
   var disabledOpt = document.createElement("option");
   disabledOpt.textContent = 'Select chart a series';
   disabledOpt.disabled = true;
-  disabledOpt.selected = true;
+  //disabledOpt.selected = true;
 
   selectFilter.appendChild(disabledOpt);
   
@@ -133,15 +135,21 @@
         var seriesOpt = document.createElement("option");
         seriesOpt.textContent = seriesVal;
         seriesOpt.value = seriesVal;
-        seriesSelect.appendChild(seriesOpt);
+        seriesSelect.appendChild(seriesOpt);        
         // for the series options on the main map filter
         var filterOpt = document.createElement("option");
         filterOpt.textContent = seriesVal;
         filterOpt.placeholder = 'Select a series';
         filterOpt.value = "setTitle = " + "'" + seriesVal + "'";
         filterSelect.appendChild(filterOpt);
+        // Select French Charts by default
+        if (seriesVal == 'French Charts') {
+          filterOpt.selected = true;                  
+        }
       });         
     });
+
+  $('#setFilter').change(); 
 
   // creates a new image viewer for the popup modal
   function viewImage() {    
@@ -190,6 +198,137 @@
         {
           fieldName: "scale",
           label: "Scale"
+        },
+        {
+          fieldName: "title",
+          label: "title"
+        },
+        {
+          fieldName: "edition",
+          label: "edition"
+        },
+        {
+          fieldName: "available",
+          label: "available"
+        },
+        {
+          fieldName: "physHold",
+          label: "physHold"
+        },
+        {
+          fieldName: "primeMer",
+          label: "primeMer"
+        },
+        {
+          fieldName: "projection",
+          label: "projection"
+        },
+        {
+          fieldName: "datePub",
+          label: "datePub"
+        },
+        {
+          fieldName: "color",
+          label: "color"
+        },
+        {
+          fieldName: "recId",
+          label: "recId"
+        },
+        {
+          fieldName: "note",
+          label: "note"
+        },
+        {
+          fieldName: "sheetId",
+          label: "sheetId"
+        },
+        {
+          fieldName: "digital ID",
+          label: "digita"
+        },
+        {
+          fieldName: "titleAlt",
+          label: "titleAlt"
+        },
+        {
+          fieldName: "digHold",
+          label: "digHold"
+        },
+        {
+          fieldName: "thumbURL",
+          label: "thumbURL"
+        },
+        {
+          fieldName: "miradorURL",
+          label: "miradorURL"
+        },
+        {
+          fieldName: "iiifURL",
+          label: "iiifURL"
+        },
+        {
+          fieldName: "location",
+          label: "location"
+        },
+        {
+          fieldName: "bathLines",
+          label: "bathLines"
+        },
+        {
+          fieldName: "bathInterv",
+          label: "bathInterv"
+        },
+        {
+          fieldName: "instCallNo",
+          label: "instCallNo"
+        },
+      ]
+    }, 
+  ]
+};
+
+// Create a template for the popup
+  var template2 = {
+  // autocasts as new PopupTemplate()
+  title: "<font color='#008000'>{title}",  
+  content: [
+  {
+      type: "media",
+      mediaInfos: [
+        {
+          title: "",
+          type: "image",
+          value: {sourceURL: 'img/default.jpg'}
+        }
+      ]          
+        },
+        {
+      type: "fields",
+      fieldInfos: [
+        {
+          fieldName: "label",
+          label: "label"
+        },
+        {
+          fieldName: "west",
+          label: "West"
+        },
+        {
+          fieldName: "east",
+          label: "East"
+        },
+        {
+          fieldName: "north",
+          label: "North"
+        },
+        {
+          fieldName: "south",
+          label: "South"
+        },
+        {
+          fieldName: "scale",
+          label: "Scale"
         }
       ]
     }, 
@@ -198,6 +337,26 @@
 
 // Set the popup template on the layer
 chartsLayer.popupTemplate = template;
+
+// Show popup template based on if we have a valid sheetId
+view.when(function () {
+  // Watch for when features are selected
+  view.popup.watch("selectedFeature", function (graphic) {
+    if (graphic) {
+      if (graphic.attributes.sheetId == "") {
+       // if we don't have a sheetId show a different popup 
+       chartsLayer.popupTemplate = template2;
+       // remove the imageviewer action from the popup
+       view.popup.viewModel.actions.getItemAt(1).visible = false;
+      console.log('null');
+      } else {
+      console.log('not null');
+      chartsLayer.popupTemplate = template;
+       view.popup.viewModel.actions.getItemAt(1).visible = true;
+      }
+    }
+  })
+});
 
 // Actions for the popup
 var imageViewerAction = {
@@ -222,25 +381,43 @@ view.popup.on("trigger-action", function(event){
 function setFeatureLayerFilter(expression) {
   chartsLayer.definitionExpression = expression;  
 }
-// The filter for the page load map view
-// Only show small scale series
-//setFeatureLayerFilter("Scale >= 9463642202000" );
+
+// Display the French Charts on map load
+setFeatureLayerFilter("setTitle = 'French Charts'" );
 
 //setFeatureLayerFilter("scale < 698000" );
 // Exclude map scales according to the zoom level
-// Use 'Shape_Area' because scale information might be missing for some charts     
-/*view.watch("zoom", function(newValue) {
-  if (newValue <= 1) {    
-    setFeatureLayerFilter("Shape_Area >= 9463642202000" ); 
+/*// Use 'Shape_Area' because scale information might be missing for some charts     
+view.watch("zoom", function(newValue) {
+  if (newValue <= 3) {    
+    setFeatureLayerFilter("scale <= ‎‎10000000" ); 
   } else if (newValue >= 4) {
-    setFeatureLayerFilter("Shape_Area <= 946364220200" );
+    setFeatureLayerFilter("scale <= 1250000" );
+
   }
 
   console.log("scale property changed: ", newValue);
 });*/
 
+view.watch("zoom", function(newValue) {
+  var series = $('#setFilter').val();
+  if (newValue <= 2 && newValue < 3) {
+    // at low zooms levels show all charts
+    setFeatureLayerFilter(series + "AND scale > 0");
+  } else if (newValue >= 3 && newValue < 4) {    
+    // as the users zooms in show only larger scale charts
+    setFeatureLayerFilter(series + "AND scale <  ‎ ‎10000000"); 
+  } else if (newValue >= 4 && newValue < 5) {
+    setFeatureLayerFilter(series + "AND scale <  ‎ ‎‎4000000");
+  }  else if (newValue >= 5 && newValue < 6) {
+    setFeatureLayerFilter(series + "AND scale <  ‎ ‎‎‎231290");
+  }
+  console.log("scale property changed: ", newValue);
+});
+
 // filter the chartsLayer using the attributes in the dropdown. 
-selectFilter.addEventListener('change', function (event) {  
+selectFilter.addEventListener('change', function (event) { 
+console.log($('#setFilter').val()); 
   setFeatureLayerFilter(event.target.value);
   // zoom to the full extent of the filter result
   chartsLayer
@@ -251,6 +428,16 @@ selectFilter.addEventListener('change', function (event) {
     view.goTo(response.extent);
   });
 });
+
+// Add element for the info button using Esri widgets
+var infoBtn = document.createElement('div');
+infoBtn.className = "esri-icon-description esri-widget--button esri-widget esri-interactive";
+infoBtn.addEventListener('click', function(event){
+  // when the download button is clicked show the modal
+  $('#infoModal').modal('show') 
+})
+
+view.ui.add(infoBtn, "top-left");
 
 // Add element for the download button using Esri widgets
 var downloadBtn = document.createElement('div');
@@ -287,9 +474,10 @@ getDataBtn.addEventListener('click', function(event){
 // Use an HTTP get request
     $.ajax({
             dataType: 'json',
-            url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27' + seriesVal + '%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=pjson',
+            url: 'https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27' + seriesVal + '%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=false&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=pjson',
             type: "GET",    
-            success: function(data) {            
+            success: function(data) {  
+            console.log(data.features);          
               // The output fields for the CSV, if new ones are added must add here           
               var fields = [            
                 {
@@ -402,7 +590,9 @@ getDataBtn.addEventListener('click', function(event){
                   value: 'attributes.iiifURL',
                   default: 'NULL' 
                 },
-              ]             
+              ]  
+
+
               var parser = new json2csv.Parser({fields});            
               var csv = parser.parse(data.features);
               var element = document.createElement('a');
@@ -415,7 +605,7 @@ getDataBtn.addEventListener('click', function(event){
   } else if (dataFormat == 'geojson') {
     $.ajax({
           dataType: 'json',
-          url: 'http://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27' + seriesVal + '%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=geojson',
+          url: 'https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27' + seriesVal + '%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=geojson',
           type: "GET",    
           success: function(data) {            
             downloadGeoJson(JSON.stringify(data, undefined, 4), 'chart_data.geojson');           

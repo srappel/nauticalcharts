@@ -17,7 +17,7 @@
     <!-- Image and text -->
 <nav class="navbar navbar-light bg-light">
   <a class="navbar-brand" href="#">
-    <img src="compass.png" width="40" height="40" class="d-inline-block align-top" alt="" loading="lazy">
+    <img src="compass.png" width="50" height="50" class="d-inline-block align-top" alt="" loading="lazy">
     AGSL Nautical Chart Explorer
   </a>
 </nav>    
@@ -58,6 +58,34 @@
         </button>
         <div id="openseadragon1"></div>
       </div>      
+    </div>
+  </div>
+</div>
+<div class="modal" id="infoModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">About this Project</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h5>Using this Application</h5>
+        First select a chart series of interest from the dropdown menu, by default the application displays 'French Charts.' Pan and zoom
+        around the map to locate charts in an area of interest. Clicking on any chart will reveal information about each chart. Use the <strong>Full Image</strong> button in the popup to display a high-resoltion, zoomable image of the select chart. <br><br>
+
+        You can also use the <strong>Search</strong> bar to locate any chart by geographic location or its 'Title' or 'label.'<br><br>
+        <h5>Download Data</h5>
+        You can use the download data button to select and download an entire chart series in either GeoJSON or CSV format. First select
+        a chart series and then select the data type and click the <strong>Download</strong> button.<br><br>
+        <h5>Credits</h5>
+        Application Developer: Bob Cowling<br>
+        Title: GIS Intern at the AGSL
+      </div>
+      <div class="modal-footer">        
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
     </div>
   </div>
 </div>
