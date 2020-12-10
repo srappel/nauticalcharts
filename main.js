@@ -474,7 +474,7 @@ getDataBtn.addEventListener('click', function(event){
 // Use an HTTP get request
     $.ajax({
             dataType: 'json',
-            url: 'https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27' + seriesVal + '%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=false&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=pjson',
+            url: 'https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27' + seriesVal + '%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=false&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=geojson',
             type: "GET",    
             success: function(data) {  
             console.log(data.features);          
@@ -482,116 +482,115 @@ getDataBtn.addEventListener('click', function(event){
               var fields = [            
                 {
                   label: 'label', 
-                  value: 'attributes.label',
+                  value: 'properties.label',
                   default: 'NULL' 
                 },
                 {
                   label: 'title', 
-                  value: 'attributes.title',
+                  value: 'properties.title',
                   default: 'NULL' 
                 },
                 {
                   label: 'datePub', 
-                  value: 'attributes.datePub',
+                  value: 'properties.datePub',
                   default: 'NULL' 
                 },
                 {
                   label: 'scale', 
-                  value: 'attributes.scale',
+                  value: 'properties.scale',
                   default: 'NULL' 
                 },
                 {
                   label: 'primeMer', 
-                  value: 'attributes.primeMer',
+                  value: 'properties.primeMer',
                   default: 'NULL' 
                 },
                 {
                   label: 'west', 
-                  value: 'attributes.west',
+                  value: 'properties.west',
                   default: 'NULL' 
                 },
                 {
                   label: 'east', 
-                  value: 'attributes.east',
+                  value: 'properties.east',
                   default: 'NULL' 
                 },
                  {
                   label: 'north', 
-                  value: 'attributes.north',
+                  value: 'properties.north',
                   default: 'NULL' 
                 },
                  {
                   label: 'south', 
-                  value: 'attributes.south',
+                  value: 'properties.south',
                   default: 'NULL' 
                 },
                 {
                   label: 'color', 
-                  value: 'attributes.color',
+                  value: 'properties.color',
                   default: 'NULL' 
                 },
                  {
                   label: 'available', 
-                  value: 'attributes.available',
+                  value: 'properties.available',
                   default: 'NULL' 
                 },
                  {
                   label: 'physHold', 
-                  value: 'attributes.physHold',
+                  value: 'properties.physHold',
                   default: 'NULL' 
                 },
                 {
                   label: 'edition', 
-                  value: 'attributes.edition',
+                  value: 'properties.edition',
                   default: 'NULL' 
                 },
                 {
                   label: 'publisher', 
-                  value: 'attributes.projection',
+                  value: 'properties.projection',
                   default: 'NULL' 
                 },
                 {
                   label: 'projection', 
-                  value: 'attributes.projection',
+                  value: 'properties.projection',
                   default: 'NULL' 
                 },
                 {
                   label: 'location', 
-                  value: 'attributes.location',
+                  value: 'properties.location',
                   default: 'NULL' 
                 },
                 {
                   label: 'digHold', 
-                  value: 'attributes.digHold',
+                  value: 'properties.digHold',
                   default: 'NULL' 
                 },
                 {
                   label: 'bathInterv', 
-                  value: 'attributes.bathInterv',
+                  value: 'properties.bathInterv',
                   default: 'NULL' 
                 },
                 {
                   label: 'bathLines', 
-                  value: 'attributes.bathLines',
+                  value: 'properties.bathLines',
                   default: 'NULL' 
                 },
                 {
                   label: 'note', 
-                  value: 'attributes.note',
+                  value: 'properties.note',
                   default: 'NULL' 
                 },
                 {
                   label: 'recId', 
-                  value: 'attributes.recId',
+                  value: 'properties.recId',
                   default: 'NULL' 
                 },
                 {
                   label: 'iiifUrl', 
-                  value: 'attributes.iiifURL',
+                  value: 'properties.iiifURL',
                   default: 'NULL' 
                 },
               ]  
-
 
               var parser = new json2csv.Parser({fields});            
               var csv = parser.parse(data.features);

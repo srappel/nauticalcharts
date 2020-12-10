@@ -7,8 +7,15 @@
 }
 
 .navbar {
-  height: 56.5px;        
-  
+  height: 56.5px;  
+}
+
+.navbar-brand {
+  padding: 0 15px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .bg-light {
@@ -21,17 +28,35 @@
   height: 450px;
 }
 
-#imageModal .modal-content {
-    
-    height: 500px;
-    margin:0 auto;
-  }
+#imageModal .modal-content {    
+  height: 500px;
+  margin:0 auto;
+}
+
+ 
+#infoModal .modal-dialog{
+  overflow-y: initial !important
+}
+#infoModal .modal-body{
+  height: 80vh;
+  overflow-y: auto;
+}
+
+.responsive {
+  width: 100%;
+  height: auto;
+}
 
 @media only screen and (min-width: 992px) {
   #imageModal .modal-content {
     width: 1000px;
     height: 700px;
     margin:0 auto;
+  }
+
+  .navbar-brand {
+    font-size: 1.7rem;
+    padding: 0 15px;
   }
 
   #openseadragon1 {
