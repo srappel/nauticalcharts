@@ -288,12 +288,12 @@
   ]
 };
 
-// Create a template for the popup
-  var template2 = {
+// template for charts missing sheetId
+var template2 = {
   // autocasts as new PopupTemplate()
   title: "<font color='#008000'>{title}",  
-  content: [
-  {
+  content: [     
+        {
       type: "media",
       mediaInfos: [
         {
@@ -302,8 +302,7 @@
           value: {sourceURL: 'img/default.jpg'}
         }
       ]          
-        },
-        {
+        },{
       type: "fields",
       fieldInfos: [
         {
@@ -329,7 +328,91 @@
         {
           fieldName: "scale",
           label: "Scale"
-        }
+        },
+        {
+          fieldName: "title",
+          label: "title"
+        },
+        {
+          fieldName: "edition",
+          label: "edition"
+        },
+        {
+          fieldName: "available",
+          label: "available"
+        },
+        {
+          fieldName: "physHold",
+          label: "physHold"
+        },
+        {
+          fieldName: "primeMer",
+          label: "primeMer"
+        },
+        {
+          fieldName: "projection",
+          label: "projection"
+        },
+        {
+          fieldName: "datePub",
+          label: "datePub"
+        },
+        {
+          fieldName: "color",
+          label: "color"
+        },
+        {
+          fieldName: "recId",
+          label: "recId"
+        },
+        {
+          fieldName: "note",
+          label: "note"
+        },
+        {
+          fieldName: "sheetId",
+          label: "sheetId"
+        },
+        {
+          fieldName: "digital ID",
+          label: "digita"
+        },
+        {
+          fieldName: "titleAlt",
+          label: "titleAlt"
+        },
+        {
+          fieldName: "digHold",
+          label: "digHold"
+        },
+        {
+          fieldName: "thumbURL",
+          label: "thumbURL"
+        },
+        {
+          fieldName: "miradorURL",
+          label: "miradorURL"
+        },
+        {
+          fieldName: "iiifURL",
+          label: "iiifURL"
+        },
+        {
+          fieldName: "location",
+          label: "location"
+        },
+        {
+          fieldName: "bathLines",
+          label: "bathLines"
+        },
+        {
+          fieldName: "bathInterv",
+          label: "bathInterv"
+        },
+        {
+          fieldName: "instCallNo",
+          label: "instCallNo"
+        },
       ]
     }, 
   ]
