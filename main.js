@@ -1,3 +1,4 @@
+  // creates a new openseadragon viewer elements for the modal
   var viewer = OpenSeadragon({
       id: "openseadragon1",
       prefixUrl: "https://cdn.jsdelivr.net/npm/openseadragon@2.4/build/openseadragon/images/"      
@@ -59,9 +60,11 @@
     container: "viewDiv",
     map: map,
     center: [0,0],       
-    zoom: 3
-  });
-  
+    zoom: 3,
+    background: { // autocasts as new ColorBackground()
+      color: "#719AC8" // autocasts as new Color()
+   }
+  });  
 
   // Sources for the search widget to search our own dataset
   // In this case we use the chartsLayer
@@ -153,8 +156,8 @@
 
   // creates a new image viewer for the popup modal
   function viewImage() {    
-    var imageId = view.popup.selectedFeature.attributes.sheetId;         
-    viewer.open( "https://cdm17272.contentdm.oclc.org/digital/iiif/agdm/" + imageId + "/");
+    var imageId = view.popup.selectedFeature.attributes.sheetId; 
+    viewer.open( "https://collections.lib.uwm.edu/digital/iiif/agdm/" + imageId + "/");
     $('#imageModal').modal('show');
   }   
 
@@ -455,7 +458,7 @@ view.popup.actions.push(imageViewerAction);
 
 // This event fires for each click on any action
 view.popup.on("trigger-action", function(event){
-  // If the zoom-out action is clicked, fire the zoomOut() function
+  // If the view image action is clicked, fire the viewImage() function
   if(event.action.id === "view-image"){
     viewImage();
   }
@@ -468,32 +471,20 @@ function setFeatureLayerFilter(expression) {
 // Display the French Charts on map load
 setFeatureLayerFilter("setTitle = 'French Charts'" );
 
-//setFeatureLayerFilter("scale < 698000" );
-// Exclude map scales according to the zoom level
-/*// Use 'Shape_Area' because scale information might be missing for some charts     
-view.watch("zoom", function(newValue) {
-  if (newValue <= 3) {    
-    setFeatureLayerFilter("scale <= ‎‎10000000" ); 
-  } else if (newValue >= 4) {
-    setFeatureLayerFilter("scale <= 1250000" );
-
-  }
-
-  console.log("scale property changed: ", newValue);
-});*/
-
 view.watch("zoom", function(newValue) {
   var series = $('#setFilter').val();
   if (newValue <= 2 && newValue < 3) {
     // at low zooms levels show all charts
-    setFeatureLayerFilter(series + "AND scale > 0");
+    setFeatureLayerFilter(series);
   } else if (newValue >= 3 && newValue < 4) {    
     // as the users zooms in show only larger scale charts
-    setFeatureLayerFilter(series + "AND scale <  ‎ ‎10000000"); 
+    setFeatureLayerFilter(series + "AND Shape_Area <  ‎ ‎8463642202000"); 
   } else if (newValue >= 4 && newValue < 5) {
-    setFeatureLayerFilter(series + "AND scale <  ‎ ‎‎4000000");
+    setFeatureLayerFilter(series + "AND Shape_Area <  ‎ ‎‎5463642202000");
   }  else if (newValue >= 5 && newValue < 6) {
-    setFeatureLayerFilter(series + "AND scale <  ‎ ‎‎‎231290");
+    setFeatureLayerFilter(series + "AND Shape_Area <  ‎ ‎‎‎463642202000");
+  } else if (newValue >= 7) {
+    setFeatureLayerFilter(series + "AND Shape_Area <  ‎ ‎‎‎4636422022");
   }
   console.log("scale property changed: ", newValue);
 });
@@ -548,20 +539,21 @@ view.ui.add(gridBtn, "top-left");
 
 var download = document.getElementById('download');
 
+// Code for when the download button is clicked
 getDataBtn.addEventListener('click', function(event){ 
   var seriesVal = document.getElementById('series').value;
   var dataFormat = document.getElementById('format').value;
   console.log(seriesVal, dataFormat);
   if (dataFormat == 'csv') {  
-// Get the charts data from the ArcGIS REST API
-// Use an HTTP get request
+    // Get the charts data from the ArcGIS REST API
+    // Use an HTTP get request
     $.ajax({
             dataType: 'json',
             url: 'https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27' + seriesVal + '%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=false&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=geojson',
             type: "GET",    
-            success: function(data) {  
-            console.log(data.features);          
-              // The output fields for the CSV, if new ones are added must add here           
+            success: function(data) {                      
+              // The output fields for the CSV, if new ones are added must add here 
+              // label fields are the CSV headers, values are the CSV values          
               var fields = [            
                 {
                   label: 'label', 
@@ -673,14 +665,15 @@ getDataBtn.addEventListener('click', function(event){
                   value: 'properties.iiifURL',
                   default: 'NULL' 
                 },
-              ]  
-
+              ] 
+              // replace spaces in file name with underscores 
+              var csvFileName = seriesVal.split(' ').join('_') + '.csv';   
               var parser = new json2csv.Parser({fields});            
               var csv = parser.parse(data.features);
               var element = document.createElement('a');
               element.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
               element.target = '_blank';
-              element.download = 'chart_data.csv';
+              element.download = csvFileName;
               element.click();            
             }
     });
@@ -689,11 +682,12 @@ getDataBtn.addEventListener('click', function(event){
           dataType: 'json',
           url: 'https://webgis.uwm.edu/arcgisuwm/rest/services/AGSL/agsl_nautical/MapServer/0/query?where=setTitle+%3D+%27' + seriesVal + '%27&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=geojson',
           type: "GET",    
-          success: function(data) {            
-            downloadGeoJson(JSON.stringify(data, undefined, 4), 'chart_data.geojson');           
+          success: function(data) {
+            // replace spaces in file name with underscores 
+            var jsonFileName = seriesVal.split(' ').join('_') + '.geojson';             
+            downloadGeoJson(JSON.stringify(data, undefined, 4), jsonFileName);           
           }
     });   
   }
 })
-
 })
