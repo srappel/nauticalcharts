@@ -499,7 +499,11 @@ console.log($('#setFilter').val());
     return chartsLayer.queryExtent();
   })
   .then(function(response) {
-    view.goTo(response.extent);
+    // zoom to the extent of query
+    view.goTo({
+      center: response.extent,
+      zoom: 2
+    });
   });
 });
 
