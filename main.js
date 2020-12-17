@@ -79,6 +79,7 @@
     placeholder: "Enter chart label or title",
     maxResults: 6,
     maxSuggestions: 6,
+    zoomScale: 90000000, // use this to prevent charts disappearing when the user zooms in
     suggestionsEnabled: true,
     minSuggestCharacters: 0,
     filter: { where: $('#setFilter').val()},
@@ -89,14 +90,16 @@
   var searchWidget = new Search({
     sources: sources,
     view: view,
-    locationEnabled: false,
+    locationEnabled: false
   });
+
   // Adds the search widget below other elements in
   // the top left corner of the view
   view.ui.add(searchWidget, {
     position: "top-right",
     index: 2,
   });
+  
   
   // Create the dropdown menu for the select filter
   var selectFilter = document.createElement("select");
@@ -478,13 +481,13 @@ view.watch("zoom", function(newValue) {
     setFeatureLayerFilter(series);
   } else if (newValue >= 3 && newValue < 4) {    
     // as the users zooms in show only larger scale charts
-    setFeatureLayerFilter(series + "AND Shape_Area <  ‎ ‎8463642202000"); 
+    setFeatureLayerFilter(series + "AND Shape_Area <  ‎ ‎19463642202000"); 
   } else if (newValue >= 4 && newValue < 5) {
     setFeatureLayerFilter(series + "AND Shape_Area <  ‎ ‎‎5463642202000");
-  }  else if (newValue >= 5 && newValue < 6) {
+  }  else if (newValue >= 5 && newValue < 7) {
     setFeatureLayerFilter(series + "AND Shape_Area <  ‎ ‎‎‎463642202000");
   } else if (newValue >= 7) {
-    setFeatureLayerFilter(series + "AND Shape_Area <  ‎ ‎‎‎4636422022");
+    setFeatureLayerFilter(series + "AND Shape_Area <  ‎ ‎‎‎8636422022");
   }
   console.log("scale property changed: ", newValue);
 });
